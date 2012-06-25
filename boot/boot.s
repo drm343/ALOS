@@ -1,25 +1,28 @@
-%define BOOTUP_SEC 0x7c00
+%define BootUpAdress 0x07c0
 
 [bits 16]
-[org BOOTUP_SEC]
+[org 0x0000]
 
 BootSectorAt07c0:
     cli
+    jmp BootUpAdress:BootStart
+BootStart:
     mov ax , cs
     mov ds , ax
     mov ss , ax
     mov es , ax
-    call DispStr
+    mov sp , 0x3fe
+    call Disprint
     jmp $
 
-DispStr:
+Disprint:
     mov ax , BootMessage
     mov bp , ax
     mov cx , 11
-    mov ax , 01301h
-    mov bx , 0000Ch
+    mov ax , 0x1301
+    mov bx , 0x000f
     mov dx , 0x0000
-    int 10h
+    int 0x10
     ret
 
 BootMessage db "Hello world" , 0

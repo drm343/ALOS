@@ -1,0 +1,31 @@
+     1                                  %define BootUpAdress 0x07c0
+     2                                  
+     3                                  [bits 16]
+     4                                  [org 0x0000]
+     5                                  
+     6                                  BootSectorAt07c0:
+     7 00000000 FA                          cli
+     8 00000001 EA[0600]C007                jmp BootUpAdress:BootStart
+     9                                  BootStart:
+    10 00000006 8CC8                        mov ax , cs
+    11 00000008 8ED8                        mov ds , ax
+    12 0000000A 8ED0                        mov ss , ax
+    13 0000000C 8EC0                        mov es , ax
+    14 0000000E BCFE03                      mov sp , 0x3fe
+    15 00000011 E80200                      call Disprint
+    16 00000014 EBFE                        jmp $
+    17                                  
+    18                                  Disprint:
+    19 00000016 B8[2A00]                    mov ax , BootMessage
+    20 00000019 89C5                        mov bp , ax
+    21 0000001B B90B00                      mov cx , 11
+    22 0000001E B80113                      mov ax , 0x1301
+    23 00000021 BB0F00                      mov bx , 0x000f
+    24 00000024 BA0000                      mov dx , 0x0000
+    25 00000027 CD10                        int 0x10
+    26 00000029 C3                          ret
+    27                                  
+    28 0000002A 48656C6C6F20776F72-     BootMessage db "Hello world" , 0
+    29 00000033 6C6400             
+    30 00000036 00<rept>                times 510-($-$$) db 0
+    31 000001FE 55AA                    dw    0xaa55
