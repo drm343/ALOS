@@ -1,4 +1,6 @@
 %define BootUpAdress 0x07c0
+%define Disk_Read    0x02
+%define Bios_Read    0x13
 
 [bits 16]
 [org 0x0000]
