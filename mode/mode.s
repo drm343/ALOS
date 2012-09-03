@@ -1,11 +1,20 @@
+%define OS_Image 0x1000
+
 [bits 16]
 [org 0x0000]
 
+InStart:
+    jmp OS_Image:Start
+Start:
+    mov ax , cs
+    mov ds , ax
+    mov ss , ax
+    mov es , ax
+    mov ax , HelloMessage
     call ModePrint
     jmp $
 
 ModePrint:
-    mov ax , HelloMessage
     mov bp , ax
     mov cx , 10
     mov ax , 0x1301

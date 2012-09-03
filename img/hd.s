@@ -18,4 +18,5 @@
 ;total sector=0.98 megabytes
 ;**************/
 INCBIN "..\boot\boot.bin"
+times 1024 - ( $ - $$ ) db 0x00
 INCBIN "..\mode\mode.bin"
