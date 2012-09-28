@@ -1,0 +1,44 @@
+     1                                  %define BootUpAdress 0x07c0
+     2                                  %define OS_Image     0x1000
+     3                                  %define Disk_Read    0x02
+     4                                  %define Bios_Read    0x13
+     5                                  %define Disk_1       0x00
+     6                                  
+     7                                  [bits 16]
+     8                                  [org 0x0000]
+     9                                  
+    10                                  BootSectorAt07c0:
+    11 00000000 EA[0500]C007                jmp  BootUpAdress:BootStart
+    12                                  BootStart:
+    13 00000005 B8C007                      mov  ax , BootUpAdress
+    14 00000008 8ED8                        mov  ds , ax
+    15 0000000A 8ED0                        mov  ss , ax
+    16 0000000C 8EC0                        mov  es , ax
+    17 0000000E BCFE03                      mov  sp , 0x3fe
+    18 00000011 E80300                      call LoadOs
+    19 00000014 E9(0010)                    jmp OS_Image
+    20                                  
+    21                                  LoadOs:
+    22 00000017 B80010                      mov  ax , OS_Image
+    23 0000001A 8EC0                        mov  es , ax
+    24 0000001C BB0000                      mov  bx , 0
+    25 0000001F 31C9                        xor  cx , cx
+    26                                  reset:
+    27 00000021 B400                        mov  ah , 0x00
+    28 00000023 CD13                        int  Bios_Read
+    29 00000025 08E4                        or   ah , ah
+    30 00000027 75F8                        jnz  reset
+    31                                  LoadOsing:
+    32 00000029 B402                        mov  ah , Disk_Read
+    33 0000002B B002                        mov  al , 0x02
+    34 0000002D B500                        mov  ch , 0
+    35 0000002F B102                        mov  cl , 0x02
+    36 00000031 B600                        mov  dh , 0
+    37 00000033 B200                        mov  dl , Disk_1
+    38 00000035 CD13                        int  Bios_Read
+    39 00000037 08E4                        or   ah , ah
+    40 00000039 75EE                        jnz  LoadOsing
+    41 0000003B C3                          ret
+    42                                  
+    43 0000003C 00<rept>                times 510-($-$$) db 0
+    44 000001FE 55AA                    dw    0xaa55

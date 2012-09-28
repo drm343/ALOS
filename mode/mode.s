@@ -4,7 +4,7 @@
 [org 0x0000]
 
 InStart:
-    jmp OS_Image:Start
+    jmp Start
 Start:
     mov ax , cs
     mov ds , ax
