@@ -1,28 +1,25 @@
-     1                                  %define OS_Image 0x1000
+     1                                  [bits 16]
      2                                  
-     3                                  [bits 16]
-     4                                  [org 0x0000]
-     5                                  
-     6                                  InStart:
-     7 00000000 EB00                        jmp Start
-     8                                  Start:
-     9 00000002 8CC8                        mov ax , cs
-    10 00000004 8ED8                        mov ds , ax
-    11 00000006 8ED0                        mov ss , ax
-    12 00000008 8EC0                        mov es , ax
-    13 0000000A B8[2300]                    mov ax , HelloMessage
-    14 0000000D E80200                      call ModePrint
-    15 00000010 EBFE                        jmp $
-    16                                  
-    17                                  ModePrint:
-    18 00000012 89C5                        mov bp , ax
-    19 00000014 B90A00                      mov cx , 10
-    20 00000017 B80113                      mov ax , 0x1301
-    21 0000001A BB0F00                      mov bx , 0x000f
-    22 0000001D BA0001                      mov dx , 0x0100
-    23 00000020 CD10                        int 0x10
-    24 00000022 C3                          ret
-    25                                  
-    26 00000023 686168616861686168-     HelloMessage db "hahahahaha" , 0
-    27 0000002C 6100               
-    28 0000002E 00<rept>                times (1024-($-$$)) db 0
+     3                                  InStart:
+     4 00000000 EB00                        jmp Start
+     5                                  Start:
+     6 00000002 8CC8                        mov ax , cs
+     7 00000004 8ED8                        mov ds , ax
+     8 00000006 8ED0                        mov ss , ax
+     9 00000008 8EC0                        mov es , ax
+    10 0000000A B8[2300]                    mov ax , HelloMessage
+    11 0000000D E80200                      call ModePrint
+    12 00000010 EBFE                        jmp $
+    13                                  
+    14                                  ModePrint:
+    15 00000012 89C5                        mov bp , ax
+    16 00000014 B90B00                      mov cx , 11
+    17 00000017 B80113                      mov ax , 0x1301
+    18 0000001A BB0F00                      mov bx , 0x000f
+    19 0000001D BA0001                      mov dx , 0x0100
+    20 00000020 CD10                        int 0x10
+    21 00000022 C3                          ret
+    22                                  
+    23 00000023 686168616861686168-     HelloMessage db "hahahahaha" , 0
+    24 0000002C 6100               
+    25 0000002E 00<rept>                times (1024-($-$$)) db 0

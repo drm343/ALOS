@@ -1,44 +1,165 @@
-     1                                  %define BootUpAdress 0x07c0
-     2                                  %define OS_Image     0x1000
-     3                                  %define Disk_Read    0x02
-     4                                  %define Bios_Read    0x13
-     5                                  %define Disk_1       0x00
-     6                                  
-     7                                  [bits 16]
-     8                                  [org 0x0000]
-     9                                  
-    10                                  BootSectorAt07c0:
-    11 00000000 EA[0500]C007                jmp  BootUpAdress:BootStart
-    12                                  BootStart:
-    13 00000005 B8C007                      mov  ax , BootUpAdress
-    14 00000008 8ED8                        mov  ds , ax
-    15 0000000A 8ED0                        mov  ss , ax
-    16 0000000C 8EC0                        mov  es , ax
-    17 0000000E BCFE03                      mov  sp , 0x3fe
-    18 00000011 E80300                      call LoadOs
-    19 00000014 E9(0010)                    jmp OS_Image
-    20                                  
-    21                                  LoadOs:
-    22 00000017 B80010                      mov  ax , OS_Image
-    23 0000001A 8EC0                        mov  es , ax
-    24 0000001C BB0000                      mov  bx , 0
-    25 0000001F 31C9                        xor  cx , cx
-    26                                  reset:
-    27 00000021 B400                        mov  ah , 0x00
-    28 00000023 CD13                        int  Bios_Read
-    29 00000025 08E4                        or   ah , ah
-    30 00000027 75F8                        jnz  reset
-    31                                  LoadOsing:
-    32 00000029 B402                        mov  ah , Disk_Read
-    33 0000002B B002                        mov  al , 0x02
-    34 0000002D B500                        mov  ch , 0
-    35 0000002F B102                        mov  cl , 0x02
-    36 00000031 B600                        mov  dh , 0
-    37 00000033 B200                        mov  dl , Disk_1
-    38 00000035 CD13                        int  Bios_Read
-    39 00000037 08E4                        or   ah , ah
-    40 00000039 75EE                        jnz  LoadOsing
-    41 0000003B C3                          ret
-    42                                  
-    43 0000003C 00<rept>                times 510-($-$$) db 0
-    44 000001FE 55AA                    dw    0xaa55
+     1                                  ;/******************************
+     2                                  ;* description: IBM AT pc bootup sector
+     3                                  ;*              BIOS load boot sector onto 0000:7c00 and execute it
+     4                                  ;*              Boot sector will load os image onto 0x00010000~0x00090000
+     5                                  ;*
+     6                                  ;* filename: bootsect_floppy.asm
+     7                                  ;* author: Book Chen
+     8                                  ;* date:20091105
+     9                                  ;*******************************
+    10                                  ;*/ 
+    11                                  
+    12                                  %define DRIVE_FLOPPY_A    0x00     ;drive number used in int 13h
+    13                                  %define DRIVE_FLOPPY_B    0x01     ;drive number used in int 13h
+    14                                  %define DRIVE_HD_1        0x80     ;drive number used in int 13h
+    15                                  %define DRIVE_HD_2        0x81     ;drive number used in int 13h
+    16                                  %define DISK_READ         0x02     ;action code of read
+    17                                  %define COMMAND_DISK      0x13     ;bios disk operation command
+    18                                  %define SECTOR_PER_TRACK  18       ;Sector number per track. 1.44mb hd floppy 
+    19                                  %define TRACK_PER_HEAD    80       ;Track number per head. 1.44mb hd floppy
+    20                                  %define HEAD_PER_DISK     2        ;Head number per disk.
+    21                                  %define BOOTUP_SEGMENT    0x07c0   ;boot sector address by BIOS
+    22                                  %define OS_IMAGE_SEGMENT  0x1000   ;1000:0000
+    23                                  %define CHANGEMODE_SIZE   2        ;protection mode setup codesize 
+    24                                  %define OSKERNEL_SIZE     800      ;operation kernel code size...400*0.5k=200k
+    25                                  %define TOTAL_CODE_LENGTH (CHANGEMODE_SIZE+OSKERNEL_SIZE) 
+    26                                  
+    27                                  [bits 16]
+    28                                  [org 0x0000] 
+    29                                  BootStart:
+    30 00000000 FA                          cli
+    31 00000001 EA[0600]C007                jmp BOOTUP_SEGMENT:L_BootStartAt7c00
+    32                                  L_BootStartAt7c00:
+    33 00000006 B8C007                      mov ax,BOOTUP_SEGMENT
+    34 00000009 8ED8                        mov ds,ax
+    35 0000000B 8ED0                        mov ss,ax
+    36 0000000D 8EC0                        mov es,ax
+    37 0000000F BCFE03                      mov sp,0x3fe
+    38                                  L_LoadOsImage:
+    39 00000012 B80006                      mov ax,0x0600
+    40 00000015 BB0007                      mov bx,0x0700
+    41 00000018 B90000                      mov cx,0
+    42 0000001B BA4F18                      mov dx,0x184f
+    43 0000001E CD10                        int 10h
+    44 00000020 B402                        mov ah,0x02
+    45 00000022 B700                        mov bh,0x00
+    46 00000024 B601                        mov dh,0x01
+    47 00000026 B200                        mov dl,0x00
+    48 00000028 CD10                        int 10h
+    49 0000002A C606[2101]03                mov byte [CurrentSector],0x03
+    50 0000002F C606[2301]00                mov byte [CurrentHead],0x00
+    51 00000034 C606[2201]00                mov byte [CurrentTrack],0x00
+    52 00000039 E80800                      call LoadOsImage               ;load image to 9000:0000 
+    53 0000003C E8A700                      call PrintLoadKernelOkMessage  ;print load image ok
+    54                                      ;hlt
+    55 0000003F EA00000010                  jmp OS_IMAGE_SEGMENT:0         ;jump to real mode initial code address
+    56                                  
+    57                                  LoadOsImage:                        
+    58 00000044 06                          push es                        ;prestore es,because it will be used in reading floppy
+    59 00000045 B80010                      mov ax,OS_IMAGE_SEGMENT        ;[0x1000:0x0000]
+    60 00000048 8EC0                        mov es,ax                      ;es=0x1000
+    61 0000004A BB0000                      mov bx,0                       ;0x0000...offset in destination segment [9000:0000]
+    62 0000004D 31C9                        xor cx,cx                      ;clear cx...xor is [11.0],[00.0],[10.1],[01.1]
+    63                                  L_LoadOsImageLoop:
+    64 0000004F B402                        mov ah,DISK_READ               ;read command
+    65 00000051 B002                        mov al,0x02                    ;2 sectors per read command
+    66 00000053 8A2E[2201]                  mov ch,byte [CurrentTrack]     ;track number
+    67 00000057 8A0E[2101]                  mov cl,byte [CurrentSector]    ;sector number
+    68 0000005B 8A36[2301]                  mov dh,byte [CurrentHead]      ;head number...disk side
+    69 0000005F B200                        mov dl,DRIVE_FLOPPY_A          ;drive a:
+    70 00000061 CD13                        int COMMAND_DISK               ;execute read command
+    71 00000063 7263                        jc L_LoadOsImageError          ;error if carry==1
+    72 00000065 FF0E[2401]                  dec word [TotalSector]         ;total sector-=1
+    73 00000069 FF0E[2401]                  dec word [TotalSector]         ;total sector-=1
+    74 0000006D 7451                        jz L_LoadOsImageDone           ;change to next track if last sector in track is reached
+    75                                  L_AdvanceBufferAddress:            ;advance [es:bx] by 2*512
+    76 0000006F 81FB00FC                    cmp bx,63*2*512                ;check segment boundary
+    77 00000073 7306                        jae L_SegmentAdvance           ;if segment boundary is reached,change to next segment
+    78 00000075 81C30004                    add bx,1024                    ;else offset+=1024...get new [es:bs]
+    79 00000079 EB0A                        jmp L_PrepareNextRead          ;do next read command 
+    80                                  L_SegmentAdvance:
+    81 0000007B 8CC3                        mov bx,es                      ;get segment value
+    82 0000007D 81C30010                    add bx,4*1024                  ;add 64k/16=4k to next segment value
+    83 00000081 8EC3                        mov es,bx                      ;update es segment value
+    84 00000083 31DB                        xor bx,bx                      ;clear bx...bx must be 0,now...get new [es:bs]
+    85                                  L_PrepareNextRead:                 ;prepare parameter for next read command
+    86 00000085 FE06[2101]                  inc byte [CurrentSector]       ;advance current sector value
+    87 00000089 FE06[2101]                  inc byte [CurrentSector]       ;advance current sector value
+    88 0000008D 803E[2101]12                cmp byte [CurrentSector],SECTOR_PER_TRACK  ;check if it reachs track boundary
+    89 00000092 7302                        jae L_TrackAdvance             ;if reach track boundary advance track number
+    90 00000094 EBB9                        jmp L_LoadOsImageLoop          ;else continue do read command
+    91                                  L_TrackAdvance:
+    92 00000096 803E[2301]00                cmp byte [CurrentHead],0x0     ;check if head==0 
+    93 0000009B 7417                        je L_NextTrackInHead1          ;if head==0,jump to head 1
+    94                                  L_NextTrackInHead0:
+    95 0000009D C606[2101]01                mov byte [CurrentSector],0x01  ;initialize current sector number
+    96 000000A2 C606[2301]00                mov byte [CurrentHead],0x00    ;switch to head 1
+    97 000000A7 FE06[2201]                  inc byte [CurrentTrack]        ;advance track number 
+    98 000000AB 803E[2201]50                cmp byte [CurrentTrack],TRACK_PER_HEAD ;check if reaching head boundary
+    99 000000B0 730E                        jae L_LoadOsImageDone          ;if reach track bounary,stop load image
+   100 000000B2 EB9B                        jmp L_LoadOsImageLoop          ;else continue to do read command
+   101                                  L_NextTrackInHead1:
+   102 000000B4 C606[2101]01                mov byte [CurrentSector],0x01  ;initialize current sector number
+   103 000000B9 C606[2301]01                mov byte [CurrentHead],0x01
+   104 000000BE EB8F                        jmp L_LoadOsImageLoop
+   105                                  L_LoadOsImageDone:
+   106 000000C0 BAF203                      mov dx,0x03f2                  ;shut down floppy disk controller
+   107 000000C3 B000                        mov al,0x00                    ;shut down floppy disk controller
+   108 000000C5 EE                          out dx,al                      ;shut down floppy disk controller
+   109 000000C6 07                          pop es                         ;get original es
+   110 000000C7 C3                          ret
+   111                                  
+   112                                  L_LoadOsImageError:                         
+   113 000000C8 BAF203                      mov dx,0x03f2                  ;shut down floppy disk controller
+   114 000000CB B000                        mov al,0x00                    ;shut down floppy
+   115 000000CD EE                          out dx,al                      ;shut down floppy
+   116 000000CE 07                          pop es                         ;get original es
+   117 000000CF B403                        mov ah,0x03                    ;read cursor position
+   118 000000D1 B700                        mov bh,0x00                    ;1st page
+   119 000000D3 CD10                        int 0x010                      ;text mode command,return dh=row number,dl=line number
+   120 000000D5 B90800                      mov cx,8                       ;string length
+   121 000000D8 BB0700                      mov bx,0x0007                  ;bh=0x00 back ground color black,bl=7 foreground color white
+   122 000000DB BD[FB00]                    mov bp,ErrorMessage            ;load offset of string
+   123 000000DE B80113                      mov ax,0x1301                  ;ah=0x13...write string,al=0x01...write mode
+   124 000000E1 CD10                        int 0x010                      ;text mode command
+   125                                  L_LoadOsImageDeadLoop2:            ;dead loop
+   126 000000E3 EBFE                        jmp L_LoadOsImageDeadLoop2     ;dead loop
+   127 000000E5 C3                          ret                            ;this line should never execute
+   128                                      
+   129                                  PrintLoadKernelOkMessage:
+   130 000000E6 B403                        mov ah,0x03                    ;get cursor position command
+   131 000000E8 B700                        mov bh,0x00                    ;page number 
+   132 000000EA CD10                        int 0x10                       ;screen io...dh=row number,dl=line number
+   133 000000EC B91700                      mov cx,23                      ;string length
+   134 000000EF BB0700                      mov bx,0x0007                  ;bl=7...color
+   135 000000F2 BD[0401]                    mov bp,LoadingOkMessage        ;string address
+   136 000000F5 B80113                      mov ax,0x1301                  ;ah=0x13...write string,al=0x01...write mode
+   137 000000F8 CD10                        int 0x10                       ;show meaasge on video
+   138 000000FA C3                          ret                                     
+   139                                  
+   140                                  MessagePool:
+   141                                      ErrorMessage:
+   142 000000FB 0D                              db 0x0d                    ;change line
+   143 000000FC 0A                              db 0x0a                    ;change line
+   144 000000FD 4661756C742E                    db 'Fault.'                ;string to show
+   145 00000103 00                              db 0x00
+   146                                      LoadingOkMessage:              ;23 bytes length
+   147 00000104 0D                              db 0x0d                    ;change line
+   148 00000105 0A                              db 0x0a                    ;change line
+   149 00000106 4C6F6164696E67204F-             db 'Loading OS kernel ok.' ;string to show
+   150 0000010F 53206B65726E656C20-
+   151 00000118 6F6B2E             
+   152 0000011B 00                              db 0x00
+   153                                      VersionMessage:
+   154 0000011C 31323334                        db '1234'
+   155 00000120 00                              db 0x00
+   156                                          
+   157                                  LocalVariables:        
+   158 00000121 03                      CurrentSector: db 0x03
+   159 00000122 00                      CurrentTrack:  db 0x00
+   160 00000123 00                      CurrentHead:   db 0x00   
+   161 00000124 2203                    TotalSector:   dw TOTAL_CODE_LENGTH
+   162                                  
+   163 00000126 00<rept>                times 510 - ($ - $$) db 0x00
+   164 000001FE 55AA                    dw 0xaa55
+   165                                  

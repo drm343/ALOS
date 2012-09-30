@@ -1,7 +1,4 @@
-%define OS_Image 0x1000
-
 [bits 16]
-[org 0x0000]
 
 InStart:
     jmp Start
@@ -16,7 +13,7 @@ Start:
 
 ModePrint:
     mov bp , ax
-    mov cx , 10
+    mov cx , 11
     mov ax , 0x1301
     mov bx , 0x000f
     mov dx , 0x0100
