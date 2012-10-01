@@ -14,4 +14,5 @@ mode.bin:
 
 .PHONY: clean
 clean:
-	@rm *~
+	-rm *~
+	-rm *lst
