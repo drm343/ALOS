@@ -35,7 +35,7 @@ BootStart:
     call Load_Loader
     jmp  OS_ADDRESS:0          ;jump to mode change code
 
-Load_Loader:                        
+Load_Loader: 
     push es
     mov  ax , OS_ADDRESS
     mov  es , ax

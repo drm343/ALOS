@@ -1,4 +1,0 @@
-     1 00000000 <incbin>                INCBIN "./source/boot.bin"
-     2 00000200 00<rept>                times 1024 - ($-$$) db 0x00
-     3 00000400 <incbin>                INCBIN "./source/mode.bin"
-     4                                  times 2*1024 - ($-$$) db 0
