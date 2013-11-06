@@ -5,39 +5,73 @@ BUILD="$RELEASE/build"
 DEBUG="$RELEASE/debug"
 
 #-----------------------------------------------
-# boot
+# build
 #-----------------------------------------------
 
-function boot {
-  BOOT="boot"
-  function build {
+function build {
+  function boot {
+    BOOT="boot"
     nasm -f bin -o $BUILD/lba.bin $BOOT/lba.s -l $DEBUG/lba.l
     nasm -f bin -o $BUILD/hello.bin $BOOT/hello.s -l $DEBUG/hello.l
   }
-  
-  function clear {
-    rm -rf $BUILD/*.bin $DEBUG/*.l
-  }
-  
-  $1
-}
 
-#-----------------------------------------------
-# img
-#-----------------------------------------------
-
-function img {
-  IMG="img"
-  function build {
+  function img {
+    IMG="img"
     nasm -f bin -o $BUILD/hd_img.bin $IMG/hd_img.s -l $DEBUG/hd_img.l
   }
-  
-  function clear {
-    rm -rf $BUILD/*.bin $DEBUG/*.l
+
+  function all {
+    boot
+    img
   }
-  
+
   $1
 }
 
-boot $1
-#img $1
+
+#-----------------------------------------------
+# clear
+#-----------------------------------------------
+
+function clear {
+  function boot {
+    rm -rf $BUILD/*.bin $DEBUG/*.l
+  }
+
+  function img {
+    rm -rf $BUILD/*.bin $DEBUG/*.l
+  }
+
+  function all {
+    boot
+    img
+  }
+
+  $1
+}
+
+#-----------------------------------------------
+# help
+#-----------------------------------------------
+
+function help {
+  echo "
+run [command] [target]:
+
+[command]:
+build
+clear
+help
+
+[target]:
+boot
+img
+all
+  "
+}
+
+#-----------------------------------------------
+# main
+#-----------------------------------------------
+
+$1 $2
