@@ -12,10 +12,9 @@ LBA:
   .SIZE     db 0x10
   .RESERVED db 0x0
   .COUNT    dw 0x1
-  .SEGOFF   dw UNUSED_MEMORY
+  .SEG_OFF  dw UNUSED_MEMORY
   .SEG      dw 0x0
-  .NUMBER1  dw 1
-  .NUMBER2  dw 0
+  .NUMBER   dq 1
 
 START:
   mov ax, cs

@@ -56,7 +56,7 @@ function clear {
   }
 
   function img {
-    rm -rf $BUILD/*.bin 
+    rm -rf $BUILD/*.img
     echo "clear img done"
   }
 
