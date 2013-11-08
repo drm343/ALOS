@@ -49,27 +49,27 @@ function build {
 # clear
 #-----------------------------------------------
 
-function clear {
+function clean {
   function boot {
     rm -rf $LIB/bin/*
-    echo "clear boot done"
+    echo "clean boot done"
   }
 
   function img {
     rm -rf $BUILD/*.img
-    echo "clear img done"
+    echo "clean img done"
   }
 
   function debug {
     rm -rf $DOC/debug/*.l
-    echo "clear debug done"
+    echo "clean debug done"
   }
 
   function all {
     boot
     img
     debug
-    echo "clear all done"
+    echo "clean all done"
   }
 
   $1
