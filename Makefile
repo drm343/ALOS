@@ -7,6 +7,9 @@ boot:
 img:
 	@./run build img
 
-.PHONY: clean
+.PHONY: clean test
 clean:
 	@./run clean all
+
+test:
+	@qemuctl build/hd_img.img

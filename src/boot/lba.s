@@ -2,7 +2,6 @@
 %define FIRST_DISK 0x80
 %define DISK_READ_COM 0x42
 %define RELOCATION_TABLE 0x0500
-%define LOAD_TO_HERE 0x0700
 %define JMP_TO_HERE 0x0070
 
 [bits 16]
@@ -16,14 +15,14 @@ START:
   mov es, ax
   mov ss, ax
 
-  mov word [RELOCATION_TABLE], LOAD_TO_HERE
-  mov word [LBA.SEGOFF], LOAD_TO_HERE
+  mov word [LBA.SEGOFF], (JMP_TO_HERE * 0x010)
   call LBA
 
-  jmp JMP_TO_HERE:0
+  jmp JMP_TO_HERE:0x0
 
 LBA:
   jmp .LOAD
+  nop
 
   .SIZE     DB 0x10
   .RESERVED DB 0x0

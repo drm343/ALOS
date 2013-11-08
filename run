@@ -29,7 +29,7 @@ function build {
   function img {
     NASM_SRC="$LIB/bin"
 
-    dd if=/dev/zero of=$NASM_SRC/zero.img bs=512 count=2878
+    dd if=/dev/zero of=$NASM_SRC/zero.img bs=512 count=2878 conv=notrunc
     cat $NASM_SRC/lba.bin $NASM_SRC/hello.bin $NASM_SRC/zero.img > $BUILD/hd_img.img
 
     echo "build img done"

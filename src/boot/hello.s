@@ -1,7 +1,4 @@
 [bits 16]
-org 0x0700
-
-jmp START
 
 START:
   mov ax, cs
