@@ -16,8 +16,8 @@ function build {
   }
 
   function boot {
-    NASM_SRC="$SRC/boot"
-    NASM_LIB="$LIB/nasm/"
+    NASM_SRC="$SRC/boot/x86"
+    NASM_LIB="$LIB/nasm/x86/"
     NASM_BUILD="$LIB/bin"
     NASM_DEBUG="$DOC/debug"
 
@@ -28,8 +28,10 @@ function build {
 
   function img {
     NASM_SRC="$LIB/bin"
+    size=2
+    IMG_SIZE=`expr 2880 - $size`
 
-    dd if=/dev/zero of=$NASM_SRC/zero.img bs=512 count=2878 conv=notrunc
+    dd if=/dev/zero of=$NASM_SRC/zero.img bs=512 count=$IMG_SIZE conv=notrunc
     cat $NASM_SRC/lba.bin $NASM_SRC/hello.bin $NASM_SRC/zero.img > $BUILD/hd_img.img
 
     echo "build img done"

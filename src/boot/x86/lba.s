@@ -1,8 +1,7 @@
 %define BOOT_ADDRESS 0x07c0
 %define FIRST_DISK 0x80
 %define DISK_READ_COM 0x42
-%define RELOCATION_TABLE 0x0500
-%define JMP_TO_HERE 0x0070
+%define JMP_TO_HERE 0x0050
 
 [bits 16]
 [ORG 0]
@@ -24,8 +23,7 @@ LBA:
   jmp .LOAD
   nop
 
-  .SIZE     DB 0x10
-  .RESERVED DB 0x0
+  .SIZE     DW 0x10
   .COUNT    DW 0x1
   .SEGOFF   DW 0x0
   .SEG      DW 0x0
