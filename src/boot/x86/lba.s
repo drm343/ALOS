@@ -4,41 +4,63 @@
 %define JMP_TO_HERE 0x0050
 
 [bits 16]
-[ORG 0]
-
-jmp BOOT_ADDRESS:START
-
-START:
+  org BOOT_ADDRESS
   mov ax, cs
   mov ds, ax
   mov es, ax
   mov ss, ax
 
-  mov word [LBA.SEGOFF], (JMP_TO_HERE * 0x010)
-  call LBA
+READ:
+  call DispStr1
+  mov bx, 0x7E00
+  mov es, bx
+  mov bx, 0x0000
 
-  jmp JMP_TO_HERE:0x0
+  mov ah, 0x02
+  mov al, 0x01
+  mov ch, 0x00
+  mov cl, 0x02
+  mov dh, 0x00
+  mov dl, FIRST_DISK
+  int 0x13
+  jc READ
+  jmp RUN
 
-LBA:
-  jmp .LOAD
-  nop
+RUN:
+  call DispStr2
+  jmp 0x7E00:0x0
 
-  .SIZE     DW 0x10
-  .COUNT    DW 0x1
-  .SEGOFF   DW 0x0
-  .SEG      DW 0x0
-  .NUMBER1  DW 1
-  .NUMBER2  DW 0
-  .NUMBER3  DW 0
-  .NUMBER4  DW 0
+DispStr1:
+  mov ax, BOOT_ADDRESS * 0x0F + MSG1
+  mov bp, ax
+  mov cx, MSG1Len
+  mov ax, 0x1301
+  mov bx, 0x000c
+  mov dl, 0
+  int 0x10
+  ret
 
-  .LOAD:
-    mov ah, DISK_READ_COM
-    mov dl, FIRST_DISK
-    mov SI, .SIZE
-    int 13h
-    jc  .LOAD
-    ret
+DispStr2:
+  mov ax, cs
+  mov es, ax
+
+  mov ax, BOOT_ADDRESS * 0x0F + MSG2
+  mov bp, ax
+  mov cx, MSG2Len
+  mov ax, 0x1301
+  mov bx, 0x000c
+  mov dl, 0
+  mov dh, 1
+  int 0x10
+  ret
+
+MSG1: db "Hello os"
+MSG1Len equ $-MSG1
+
+dw 0
+
+MSG2: db "load ok"
+MSG2Len equ $-MSG2
 
 times 510 - ($ - $$) DB 0
 DW 0xAA55

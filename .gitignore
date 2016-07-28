@@ -3,3 +3,5 @@
 *bin
 *l
 build/*img
+lib
+obj
