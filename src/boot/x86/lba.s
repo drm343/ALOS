@@ -1,4 +1,5 @@
 %define BOOT_ADDRESS 0x07c0
+%define LOADER_ADDRESS 0x7E00
 %define FIRST_DISK 0x80
 %define DISK_READ_COM 0x42
 %define JMP_TO_HERE 0x0050
@@ -11,8 +12,7 @@
   mov ss, ax
 
 READ:
-  call DispStr1
-  mov bx, 0x7E00
+  mov bx, LOADER_ADDRESS
   mov es, bx
   mov bx, 0x0000
 
@@ -27,40 +27,7 @@ READ:
   jmp RUN
 
 RUN:
-  call DispStr2
-  jmp 0x7E00:0x0
-
-DispStr1:
-  mov ax, BOOT_ADDRESS * 0x0F + MSG1
-  mov bp, ax
-  mov cx, MSG1Len
-  mov ax, 0x1301
-  mov bx, 0x000c
-  mov dl, 0
-  int 0x10
-  ret
-
-DispStr2:
-  mov ax, cs
-  mov es, ax
-
-  mov ax, BOOT_ADDRESS * 0x0F + MSG2
-  mov bp, ax
-  mov cx, MSG2Len
-  mov ax, 0x1301
-  mov bx, 0x000c
-  mov dl, 0
-  mov dh, 1
-  int 0x10
-  ret
-
-MSG1: db "Hello os"
-MSG1Len equ $-MSG1
-
-dw 0
-
-MSG2: db "load ok"
-MSG2Len equ $-MSG2
+  jmp LOADER_ADDRESS:0x0
 
 times 510 - ($ - $$) DB 0
 DW 0xAA55
