@@ -1,10 +1,12 @@
 %define BOOT_ADDRESS 0x0
+%define KERNEL_ADDRESS 0x0800
 
 [bits 16]
 [org BOOT_ADDRESS]
   mov ax, cs
   mov ds, ax
   mov es, ax
+  mov ss, ax
 
   ;call Text.reset
 
@@ -17,7 +19,10 @@
   mov cx, Loading.MSGLEN
   call Text
 
-  jmp $
+  ;call VGA.start
+
+  ;jmp $
+  jmp KERNEL_ADDRESS:0x0
 
 Text:
   jmp .show
@@ -39,6 +44,14 @@ Text:
     add dh, 1
     ret
 
+VGA:
+  jmp .start
+
+  .start:
+    MOV AL, 0x13
+    MOV AH, 0x00
+    int 0x10
+    ret
 
 Hello:
   .msg DB 'hello'
