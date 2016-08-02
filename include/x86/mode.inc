@@ -22,27 +22,21 @@
 %define CODE_R        0x0e
 
 
-%define Init_GDT GDT_SEGMENT 0x0, 0x0, 0x0
+%define GDT_SELETOR(x) (x - NULL_GDT)
 
-%macro GDT_SEGMENT 3
-  dw %2
-  dw %1
-  db (%1 >> 16)
-  dw ((%2 & 0xf00) | %3)
-  db (%1 >> 24)
+; name -> base -> limit -> attr -> void
+%macro GDT_SEGMENT 4
+%1:
+    dw (%2 & 0xFFFF)
+    dw %3
+    db (%2 >> 16)
+    dw (((%3 >> 8) & 0xF00) | (%4 & 0xF0FF))
+    db (%3 >> 24)
 %endmacro
-;%1:
-;.SEGMENT:
-;  .GDT_LOW_LIMIT          dw 0x0
-;  .GDT_LOW_BASE_ADDRESS   dw 0x0
-;  .GDT_HIGH_BASE_ADDRESS1 db 0x0
-;  .GDT_ACCESS_BYTE        db 0x0
-;  .GDT_LIMIT_AND_GLAGS    db 0x0
-;  .GDT_HIGH_BASE_ADDRESS2 db 0x0
 
-%define GDT_SELETOR(x) (x - SEGMENT_NULL)
-
-%macro GDTR 2
-  dw %2; address limit
-  dd %1; address base
+%macro GDTR 3
+%1:
+  dw %3 ; address limit
+  .Base:
+  dd %2 ; address base
 %endmacro

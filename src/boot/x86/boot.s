@@ -19,7 +19,7 @@ READ:
   mov bx, LOADER_ADDRESS
   call HARDDISK.SetAddress
 
-  mov bx, 1
+  mov bx, 2
   call HARDDISK.SetReadNumber
 
   mov bx, 1
@@ -27,17 +27,17 @@ READ:
 
   call HARDDISK.Read
 
-KERNEL:
-  mov bx, KERNEL_ADDRESS
-  call HARDDISK.SetAddress
-
-  mov bx, 2
-  call HARDDISK.SetReadNumber
-
-  mov bx, 2
-  call HARDDISK.SetReadFrom
-
-  call HARDDISK.Read
+;KERNEL:
+;  mov bx, KERNEL_ADDRESS
+;  call HARDDISK.SetAddress
+;
+;  mov bx, 2
+;  call HARDDISK.SetReadNumber
+;
+;  mov bx, 2
+;  call HARDDISK.SetReadFrom
+;
+;  call HARDDISK.Read
 
 RUN:
   jmp LOADER_ADDRESS:0x0

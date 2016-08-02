@@ -1,24 +1,37 @@
-%define FIRST_DISK 0x80
-%define DISK_READ_COM 0x42
+HARDDISK:
+  jmp .Read
 
-LBA:
-  jmp .LOAD
-  nop
-
-  .SIZE     DB 0x10
-  .RESERVED DB 0x0
-  .COUNT    DW 0x1
-  .SEGOFF   DW 0x0
-  .SEG      DW 0x0
-  .NUMBER1  DW 1
-  .NUMBER2  DW 0
-  .NUMBER3  DW 0
-  .NUMBER4  DW 0
-
-  .LOAD:
-    mov ah, DISK_READ_COM
-    mov dl, FIRST_DISK
-    mov SI, .SIZE
-    int 13h
-    jc  .LOAD
+  ; bx -> void
+  .SetAddress:
+    mov [BOOT_ADDRESS * 0xf + .Struct + 6], bx
     ret
+
+  ; bx -> void
+  .SetReadNumber:
+    mov [BOOT_ADDRESS * 0xf + .Struct + 2], bx
+    ret
+
+  ; bx -> void
+  .SetReadFrom:
+    mov [BOOT_ADDRESS * 0xf + .Struct + 8], bx
+    ret
+
+  .Read:
+    mov si, BOOT_ADDRESS * 0xf + .Struct
+    mov ah, 0x42
+    mov dl, FIRST_DISK
+    int 0x13
+    jc .Read
+    ret
+
+    nop
+
+  .Struct:
+    db 10h
+    db 0
+    dw 0x0 ; read number
+    dw 0x0 ; loading offset
+    dw 0x0 ; loading segment
+    dq 0x0 ; read from harddisk number
+
+    nop
