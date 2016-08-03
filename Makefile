@@ -17,7 +17,8 @@ all: $(OBJ) $(LIB)
 	dd if=$(LIB)/change_mode of=$(OBJ)/new.bin oflag=append conv=notrunc
 	dd if=$(LIB)/kernel of=$(OBJ)/new.bin oflag=append conv=notrunc
 	dd if=$(OBJ)/new.bin of=$(OBJ)/hello.img conv=notrunc
-	qemu-kvm -drive file=$(OBJ)/hello.img,media=disk,format=raw
+	qemu-img convert -f raw -O vdi $(OBJ)/hello.img $(OBJ)/hello.vdi
+	qemu-system-x86_64 -vga std -m 1G -hda $(OBJ)/hello.vdi
 
 $(OBJ):
 	mkdir -p $(OBJ)
@@ -26,7 +27,7 @@ $(LIB):
 	mkdir -p $(LIB)
 
 debug:
-	ndisasm -o 0x7c00 $(LIB)/hello > a.h; vim a.h
+	ndisasm -o 0x7e00 $(LIB)/change_mode > a.h; vim a.h
 
 clean:
 	-rm -r $(OBJ)/* $(LIB)/*

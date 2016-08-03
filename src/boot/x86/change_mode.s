@@ -15,6 +15,7 @@
 
 jmp START
 
+align 8
 GDT_SEGMENT NULL_GDT, 0x0, 0x0, 0x0
 GDT_SEGMENT CODE32_GDT, 0x0, Code32Len - 1, 0xc09b
 GDT_SEGMENT VIDEO_GDT, 0xa0000, 0xffff, 0xc092
@@ -156,10 +157,16 @@ START_CODE32:
 
   cli
 
-  jmp $
+LOOP:
+  mov ax, SelectorVideo
+  mov ds, ax
 
-SHOW_MSG equ 0xb8000
-MSG: db "start kernal"
+  mov ax, 0x0
+  mov word [0x8], ax
+  mov word [0x9], ax
+  mov word [0xa], ax
+
+  jmp $
 
 Code32Len equ $ - START_CODE32
 

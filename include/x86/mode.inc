@@ -27,12 +27,17 @@
 ; name -> base -> limit -> attr -> void
 %macro GDT_SEGMENT 4
 %1:
-    dw (%2 & 0xFFFF)
-    dw %3
-    db (%2 >> 16)
-    dw (((%3 >> 8) & 0xF00) | (%4 & 0xF0FF))
+    dw (%3 & 0xffff)
+    dw (%2 & 0xffff)
+    db ((%2 >> 16) & 0xff)
+    dw (((%3 >> 8) & 0xf00) | (%4 & 0xf0ff))
     db (%3 >> 24)
 %endmacro
+
+;VIDEO_GDT:
+;    dd 0x8000ffff
+;    dd 0x0ac0920f
+;    0xaffff 0x8000fff
 
 %macro GDTR 3
 %1:

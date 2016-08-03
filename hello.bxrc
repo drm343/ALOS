@@ -9,20 +9,23 @@
 # The first entries in this file should work for any system without 
 # editing:
 
-megs: 40
+megs: 1024
 romimage: file=$BXSHARE/BIOS-bochs-latest
 vgaromimage: file=$BXSHARE/VGABIOS-lgpl-latest
 ata0-master: type=disk, path=obj/hello.img
 log: bochsout.txt
-panic: action=ask
-error: action=report
-info: action=report
+panic: action=report
+error: action=ignore
+info: action=ignore
 debug: action=ignore
 clock: sync=both
 cpu: ips=15000000
 mouse: enabled=0
-vga: extension=vbe, update_freq=15
+vga: extension=none
 keyboard: user_shortcut=ctrlaltdel
+
+# debug for gui
+#display_library: wx
 display_library: wx, options="gui_debug"
 
 boot: disk
