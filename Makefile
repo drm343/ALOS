@@ -1,3 +1,5 @@
+.PHONY: test
+
 NASM_SRC=src/boot/x86
 C_SRC=src/kernel
 INCLUDE=include
@@ -5,10 +7,11 @@ INCLUDE_X86=$(INCLUDE)/x86/
 LIB=lib
 OBJ=obj
 
-COUNT=0
+LOCAL_BIN=bin/
+TEST=test/
 
-all: $(OBJ) $(LIB)
-	nasm $(NASM_SRC)/boot.s -o $(LIB)/boot
+all: $(OBJ) $(LIB) $(LOCAL_BIN)
+	nasm -I$(INCLUDE_X86) $(NASM_SRC)/boot.s -o $(LIB)/boot
 	nasm -I$(INCLUDE_X86) $(NASM_SRC)/change_mode.s -o $(LIB)/change_mode
 	nasm $(C_SRC)/kernel.s -o $(LIB)/kernel
 	qemu-img create $(OBJ)/hello.img -f raw 1.44M
@@ -26,8 +29,14 @@ $(OBJ):
 $(LIB):
 	mkdir -p $(LIB)
 
+$(LOCAL_BIN):
+	mkdir -p $(LOCAL_BIN)
+
 debug:
-	ndisasm -o 0x7e00 $(LIB)/change_mode > a.h; vim a.h
+	ndisasm -o 0x7c00 $(LIB)/boot > a.h; vim a.h
+
+test:
+	@$(LOCAL_BIN)/boron $(TEST)/run-boron
 
 clean:
 	-rm -r $(OBJ)/* $(LIB)/*
